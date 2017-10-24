@@ -10,14 +10,12 @@
  * 
  * 
  * Navigation:
- * Sonar sensor returns an anlog value regarding dsistance to object, no direction info given.
+ * Sonar sensor returns an analog value regarding distance to object, no direction info given.
  * If sensor returns value above threshhold, turn until it drops below threshold. Then keep going forward,
  * compute new heading.
  * 
- * With three sonar sensors, one is in front, two others are on left and right corners
- * When front gets above certain threshold, turn to right if in top left quad. Turn to left if in buttom left quad, etc.
- * Turn until side sensor gets above certain threshold so we know we have turned enough. Then go forward
- * until the side sensor drops down (so we have passed obstacle), then recompute heading.
+ * With two sonar sensors in front, go forward till we detect an obstacle in one or both of them. Turn until obstacle disappears
+ * from view.
  * 
  * Servos generally want a PWM signal with a duty cycle of 1-2 milliseconds with those being the travel limits. Period should be 20 ms or 50 Hz.
  * 
@@ -40,6 +38,7 @@
 #define RX_PIN 7
 #define TX_PIN 8
 
+// These macros give values in milliradians
 #define FULL_CIRCLE ((uint16_t)(M_PI * 2000.0)) // Two pi
 #define THREE_QUARTER ((uint16_t)(M_PI * 1500.0)) // Three pi over two
 #define HALF_CIRCLE ((uint16_t)(M_PI * 1000.0)) // Pi
@@ -47,21 +46,24 @@
 
 #define degToRad(degree) ((degree * M_PI) / 180.0)
 #define radToDeg(radian) ((radian * 180.0) / M_PI)
-Enes100 rf("The Neutralizer", CHEMICAL, MARKER_ID, RX_PIN, TX_PIN);
-struct coord
+
+Enes100 rf("The Swiss Army Bot", CHEMICAL, MARKER_ID, RX_PIN, TX_PIN);
+struct coord // Use this instead of provided coordinate class because theirs uses floats
 {
   uint16_t x;
   uint16_t y;
   uint16_t theta;
 };
-void getLocation(void);
-struct coord robot; // Updated with coordinates whenevey they are received (the current location of robot). robot.avoid is not used
+
+struct coord robot; // Updated with coordinates whenevey they are received (the current location of robot).
 struct coord pool;
 int16_t clearance = 500; // Clearance in mm between robot and obstacle
 
+void getLocation(void);
+
 void setup() 
 {
-  //PORTD = -40; // Is stored as two's complement. so 0xD8U == 216U == 0b11011000U
+  
   rf.retrieveDestination();
   pool.x = (uint16_t)(1000.0 * rf.destination.x); // Convert from meters to millimeters
   pool.y = (uint16_t)(1000.0 * rf.destination.y);
@@ -93,7 +95,7 @@ uint16_t headingToPool(void)
   }
   return (uint16_t)heading;
 }
-void getLocation()
+void getLocation() // This function updates the robots's coordinates
 {
   rf.updateLocation();
   robot.x = (uint16_t)(1000.0 * rf.location.x);
@@ -104,33 +106,7 @@ void getLocation()
   return;
 }
 
-/*void travelTo(int destx, int desty) // Won't be useful since obstacle location is never known
-{
-  float directHeading = computeHeading(destx, desty);
-  float m = computeSlope(destx, desty); // Slope from our location to destination
-  //int b = desty - destx * m; // Compute intercept for y = mx + b // Also could overflow b variable for steep slope
 
-  for(byte i = 0; i < AVOIDANCES; i++) // This for-loop goes through all the obstacles
-  { // This if-statement checks if any obstacle is within the rectangle whose opposite corners are at (robot.x, robot.y) and (destx, desty);
-    if(((obstArr[i]->x >= robot.x && obstArr[i]->x <= destx) || (obstArr[i]->x <= robot.x && obstArr[i]->x >= destx)) && 
-       ((obstArr[i]->y >= robot.y && obstArr[i]->y <= desty) || (obstArr[i]->y <= robot.y && obstArr[i]->y >= desty)))
-    {
-      //int yCoord = obstArr[i]->x * m + b; // Where robot.y will be when it's at the x coordinate of the obstacle (obstArr[i]->x)
-      int yCoord = (obstArr[i]->x - robot.x) * m + robot.y;
-      if((obstArr[i]->y < yCoord + clearance) && (obstArr[i]->y > yCoord - clearance)) // Will the obstacle be within the clearance zone?
-      {
-        obstArr[i]->avoid = 1; // It will be within clearance zone
-      }
-      else
-      {
-        obstArr[i]->avoid = 0; // It will not be within clearance zone
-      }
-    }
-  }
-  
-  return; 
-}
-*/
 /*
 float computeHeading(int px, int py)
 {
