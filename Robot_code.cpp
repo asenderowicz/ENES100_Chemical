@@ -98,7 +98,7 @@ uint16_t headingToPool(void)
 void getLocation() // This function updates the robots's coordinates
 {
   rf.updateLocation();
-  robot.x = (uint16_t)(1000.0 * rf.location.x);
+  robot.x = (uint16_t)(1000.0 * rf.location.x); // Meters as a float to millimeters as a uint16_t
   robot.y = (uint16_t)(1000.0 * rf.location.y);
   robot.theta = (uint16_t)(1000.0 * rf.location.theta); // Radians to milliradians
   // Theta is referenced from north = 0, but we want it from east = 0.
@@ -107,30 +107,4 @@ void getLocation() // This function updates the robots's coordinates
 }
 
 
-/*
-float computeHeading(int px, int py)
-{
-  float dy = py - robot.y; // Offset from current location
-  float dx = px - robot.x;
-  if(dx == 0.0) // Is destination straight up or down?
-  {
-    return dy > 0.0 ? HALF_PI : (PI + HALF_PI);
-  }
-  
-  if(dy == 0.0) // Is destination to right or left?
-  {
-    return dx > 0.0 ? 0.0 : PI;
-  }
-  
-  float heading = atan2(dy, dx); // Compute angle to destination (Expensive calculation!)
-  if(dy < 0.0) // Are we in lower half (since atan2 returned a negative angle)?
-  {
-    heading = TWO_PI - heading; // Make 0-360 instead of -180 - 180
-  }
-  return heading;
-}
 
-float computeSlope(int px, int py) // This function could overflow for a very steep slope
-{
-  return (py - robot.y) / (px - robot.x);
-}*/
