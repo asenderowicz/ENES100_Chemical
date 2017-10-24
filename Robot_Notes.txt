@@ -10,4 +10,5 @@ double - same as float on Arduino
 floats take a lot longer to process on the Arduino than decimal numbers, and take up more memory.
 For example, int8_t or uint8_t each take 1 byte while float takes 4 bytes.
 It is thus better to use integer numbers whenever possible. That is why the code uses millimeters
-and milliradians instead of meters and radians. For example, 180 degrees is 3.14159 rad, but 3142 millirad
+and milliradians instead of meters and radians. For example, 180 degrees is 3.142 rad, but 3142 millirad.
+
