@@ -1,1 +1,13 @@
+Data types used in the code:
 
+int8_t - integer variable from (-127, 127)
+uint8_t - integer variable from (0, 255)
+int16_t - integer variable from (-32767, 32767)
+uint16_t - integer variable from (0, 65535)
+float - decimal variable from (-3.4028e38, 3.4028e38)
+double - same as float on Arduino
+
+floats take a lot longer to process on the Arduino than decimal numbers, and take up more memory.
+For example, int8_t or uint8_t each take 1 byte while float takes 4 bytes.
+It is thus better to use integer numbers whenever possible. That is why the code uses millimeters
+and milliradians instead of meters and radians. For example, 180 degrees is 3.14159 rad, but 3142 millirad
