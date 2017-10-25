@@ -101,8 +101,8 @@ void getLocation() // This function updates the robots's coordinates
   robot.x = (uint16_t)(1000.0 * rf.location.x); // Meters as a float to millimeters as a uint16_t
   robot.y = (uint16_t)(1000.0 * rf.location.y);
   robot.theta = (uint16_t)(1000.0 * rf.location.theta); // Radians to milliradians
-  // Theta is referenced from north = 0, but we want it from east = 0.
-  robot.theta = robot.theta > THREE_QUARTER ? robot.theta - THREE_QUARTER : robot.theta + ONE_QUARTER;
+  // The following line references theta from east instead of north, if necessary
+  //robot.theta = robot.theta > THREE_QUARTER ? robot.theta - THREE_QUARTER : robot.theta + ONE_QUARTER;
   return;
 }
 
