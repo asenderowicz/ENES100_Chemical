@@ -33,12 +33,15 @@
  * See these: http://www.electronicwings.com/avr-atmega/ultrasonic-module-hc-sr04-interfacing-with-atmega1632
  * http://www.electronicwings.com/avr-atmega/atmega1632-timer-input-capture-mode
  */
-#include "Enes100.h"
-#define MARKER_ID 12
-#define RX_PIN 7
-#define TX_PIN 8
+#include "Enes100.h" //including their library
+#define MARKER_ID 12 //The weird designs on the marker correspond to a number- here, 12. 
+//Every time the code sees "MARKER_ID" it now replaces it with the "12"
+#define RX_PIN 7 //This is the pin we use to recieve communication from the APC
+#define TX_PIN 8 //This is the pin we use to transmit to the APC
 
 // These macros give values in milliradians
+//Here, we create constants for the radians corresponding to the four quadrants
+//We're converting the regular float radian values to integers to convert to miliradians because we want integer values not floats
 #define FULL_CIRCLE ((uint16_t)(M_PI * 2000.0)) // Two pi
 #define THREE_QUARTER ((uint16_t)(M_PI * 1500.0)) // Three pi over two
 #define HALF_CIRCLE ((uint16_t)(M_PI * 1000.0)) // Pi
@@ -50,54 +53,59 @@
 Enes100 rf("The Swiss Army Bot", CHEMICAL, MARKER_ID, RX_PIN, TX_PIN);
 struct coord // Use this instead of provided coordinate class because theirs uses floats
 {
+  //"uint16"= unassigned data type. Smallest datat type that holds the values we need
   uint16_t x;
   uint16_t y;
   uint16_t theta;
 };
 
 struct coord robot; // Updated with coordinates whenevey they are received (the current location of robot).
-struct coord pool;
+struct coord pool; //Creating a pool object with an x, y and theta
 int16_t clearance = 500; // Clearance in mm between robot and obstacle
 
-void getLocation(void);
+void getLocation(void); //declare function's existence- define it properly later
 
-void setup() 
+void setup() //using code from their library, but adding conversions to convert to integers 
 {
   
-  rf.retrieveDestination();
+  rf.retrieveDestination(); //telling us mission site
   pool.x = (uint16_t)(1000.0 * rf.destination.x); // Convert from meters to millimeters
   pool.y = (uint16_t)(1000.0 * rf.destination.y);
   getLocation();
 }
 
-void loop() 
+void loop() //Need to fill in
 {
   getLocation();
 }
 
 uint16_t headingToPool(void)
 {
-  int16_t dy = (int16_t)pool.y - (int16_t)robot.y;
-  int16_t dx = (int16_t)pool.x - (int16_t)robot.x;
-  if(dx == 0) // Is destination straight up or down?
+  int16_t dy = (int16_t)pool.y - (int16_t)robot.y; //difference between pool's y and our y
+  int16_t dx = (int16_t)pool.x - (int16_t)robot.x; //difference between pool's x and our x
+  if(dx == 0) // Is destination straight up or down (we have correct x-coordinate)?
   {
-    return dy > 0 ? ONE_QUARTER : THREE_QUARTER;
+    return dy > 0 ? ONE_QUARTER : THREE_QUARTER; 
+    //We are basically writing an "if" statement here:
+    //If we are directly above the pool, the theta we want is 3PI/2 ==> "THREE_QUARTER"
+    //If we're directly below the pool, the theta we want is PI/2 ==> "ONE_QUARTER"
   }
   
-  if(dy == 0) // Is destination to right or left?
+  if(dy == 0) // Is destination to right or left (we have correct y-coordinate)?
   {
-    return dx > 0 ? 0 : HALF_CIRCLE;
+    return dx > 0 ? 0 : HALF_CIRCLE; //Similar "if" statement
   }
   int16_t heading = 1000.0 * atan2(dy, dx); // Warning: Expensive calculation!
   if(heading < 0)
   {
-    heading = FULL_CIRCLE + heading; // (0, 360) instead of (-180, 180)
+    heading = FULL_CIRCLE + heading; // converts our negative value into a value between 0 and 360
+    //The inverse tangent function returns -PI/2 to PI/2, but we want it to be within 0 to 2PI
   }
   return (uint16_t)heading;
 }
 void getLocation() // This function updates the robots's coordinates
 {
-  rf.updateLocation();
+  rf.updateLocation(); //tells us our coordinates
   robot.x = (uint16_t)(1000.0 * rf.location.x); // Meters as a float to millimeters as a uint16_t
   robot.y = (uint16_t)(1000.0 * rf.location.y);
   robot.theta = (uint16_t)(1000.0 * rf.location.theta); // Radians to milliradians
